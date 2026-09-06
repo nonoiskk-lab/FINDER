@@ -1,0 +1,5 @@
+# Optional. Only needed for scanned PDFs with no text layer.
+# Also requires the system packages `tesseract-ocr` and `poppler-utils`.
+-r requirements.txt
+pytesseract>=0.3.10
+pdf2image>=1.17

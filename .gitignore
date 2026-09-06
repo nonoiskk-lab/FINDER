@@ -1,0 +1,20 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Runtime data — never commit tender artefacts or credentials
+data/
+!data/.gitkeep
+*.db
+.env
+*service-account*.json
+google-token.json
+credentials.json

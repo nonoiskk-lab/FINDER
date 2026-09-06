@@ -1,0 +1,223 @@
+# IT product / service taxonomy driving GeM search and first-pass classification.
+#
+# `queries` are what we actually type into the GeM bid search.
+# `signals` are what we match against a tender's title/category/description
+# once we have it. Signals are matched case-insensitively on word boundaries.
+# `negative_signals` veto a match (e.g. "printer paper" is stationery, not IT).
+
+products:
+  computer_hardware:
+    label: "Computer Hardware"
+    queries: ["Laptop", "Notebook Computer", "Desktop Computer", "Personal Computer",
+              "All in One Computer", "Workstation", "Server", "Thin Client", "Tablet Computer"]
+    signals: ["laptop", "notebook computer", "desktop", "desktop computer", "personal computer",
+              "all in one pc", "all-in-one", "workstation", "server", "rack server",
+              "blade server", "thin client", "computer system", "computer hardware",
+              "cpu", "motherboard"]
+    negative_signals: ["computer table", "computer chair", "computer stationery",
+                       "computer paper", "server room construction", "civil work"]
+
+  printing_scanning:
+    label: "Printing & Scanning"
+    queries: ["Printer", "Multifunction Printer", "MFP", "Laser Printer", "Ink Tank Printer",
+              "Line Printer", "Scanner", "Document Scanner", "Photocopier"]
+    signals: ["printer", "multifunction printer", "multi function printer", "mfp", "mfd",
+              "laser printer", "inkjet", "ink tank", "dot matrix", "scanner",
+              "document scanner", "photocopier", "copier", "plotter", "toner", "cartridge"]
+    negative_signals: ["printing of books", "printing and binding", "printing services of",
+                       "screen printing", "banner printing", "printer paper", "3d printing filament"]
+
+  networking:
+    label: "Networking"
+    queries: ["Router", "Network Switch", "Managed Switch", "Networking Equipment",
+              "Wi-Fi Access Point", "Wireless Access Point", "Structured Cabling", "Firewall"]
+    signals: ["router", "network switch", "l2 switch", "l3 switch", "managed switch",
+              "poe switch", "network equipment", "networking", "access point", "wi-fi",
+              "wifi", "wireless lan", "wlan", "lan", "structured cabling", "patch panel",
+              "firewall", "utm", "sd-wan", "media converter", "sfp", "optical fibre cable",
+              "optical fiber cable"]
+    negative_signals: ["road network", "pipeline network", "drainage network", "railway network"]
+
+  security_surveillance:
+    label: "CCTV & Surveillance"
+    queries: ["CCTV", "CCTV Camera", "IP Camera", "Video Surveillance System",
+              "Surveillance System", "NVR", "DVR", "Video Wall"]
+    signals: ["cctv", "ip camera", "bullet camera", "dome camera", "ptz camera",
+              "video surveillance", "surveillance system", "nvr", "dvr",
+              "video management system", "vms", "access control system",
+              "boom barrier", "video wall", "face recognition"]
+    negative_signals: ["security guard", "security personnel", "manned guarding", "watch and ward"]
+
+  power_storage:
+    label: "Power & Storage"
+    queries: ["UPS", "Online UPS", "Uninterruptible Power Supply", "SSD", "Solid State Drive",
+              "Hard Disk Drive", "External Hard Disk", "NAS", "Storage Array", "Battery for UPS"]
+    signals: ["ups", "uninterruptible power supply", "online ups", "offline ups",
+              "power backup", "smf battery", "vrla battery", "inverter",
+              "ssd", "solid state drive", "hard disk", "hdd", "hard drive",
+              "external hard disk", "pen drive", "usb drive", "nas",
+              "network attached storage", "san", "storage array", "tape library"]
+    negative_signals: ["ups for lift", "diesel generator set", "solar power plant"]
+
+  peripherals_accessories:
+    label: "Peripherals & Accessories"
+    queries: ["Computer Monitor", "LED Monitor", "Keyboard", "Computer Mouse",
+              "Computer Peripherals", "Web Camera", "Interactive Panel", "Projector"]
+    signals: ["monitor", "led monitor", "lcd monitor", "display", "keyboard", "mouse",
+              "computer accessories", "it peripherals", "peripherals", "webcam",
+              "web camera", "headset", "interactive flat panel", "interactive panel",
+              "projector", "docking station", "kvm switch", "biometric device",
+              "barcode scanner", "smart board"]
+    negative_signals: ["heart monitor", "patient monitor", "blood pressure monitor",
+                       "vital signs monitor", "environmental monitor"]
+
+  datacenter_infrastructure:
+    label: "Data Centre & IT Infrastructure"
+    queries: ["Data Centre Equipment", "Server Rack", "IT Infrastructure",
+              "IT Equipment", "Precision Air Conditioner", "KVM"]
+    signals: ["data centre", "data center", "server rack", "rack enclosure",
+              "it infrastructure", "it equipment", "precision air conditioning",
+              "pac unit", "hyperconverged", "virtualization", "blade chassis",
+              "sfp module", "cable management"]
+    negative_signals: []
+
+services:
+  amc_maintenance:
+    label: "AMC & Maintenance Services"
+    queries: ["AMC of Computer", "Annual Maintenance Contract Computer",
+              "AMC of Printer", "Comprehensive AMC IT Equipment",
+              "Maintenance of Computer Hardware", "Repair of Computer",
+              "Repair and Maintenance of Printer"]
+    signals: ["amc", "annual maintenance contract", "comprehensive amc", "camc",
+              "maintenance contract", "repair and maintenance", "repairing of computer",
+              "computer maintenance", "printer maintenance", "hardware maintenance",
+              "server maintenance", "preventive maintenance", "post warranty support"]
+    negative_signals: ["amc of lift", "amc of air conditioner", "amc of fire",
+                       "amc of dg set", "amc of water cooler", "amc of vehicle",
+                       "amc of building", "amc of hvac"]
+
+  network_services:
+    label: "Networking Services"
+    queries: ["Network Installation", "LAN Installation", "Networking Services",
+              "Structured Cabling Work", "Network Maintenance"]
+    signals: ["network installation", "lan installation", "networking service",
+              "network commissioning", "cabling work", "network maintenance",
+              "network management", "noc services", "internet leased line"]
+    negative_signals: []
+
+  cctv_services:
+    label: "CCTV Installation & Maintenance"
+    queries: ["CCTV Installation", "CCTV Maintenance", "Supply Installation of CCTV",
+              "Surveillance System Maintenance"]
+    signals: ["cctv installation", "cctv maintenance", "installation of cctv",
+              "surveillance system maintenance", "supply installation testing commissioning"]
+    negative_signals: []
+
+  it_support_manpower:
+    label: "IT Support & Technical Manpower"
+    queries: ["IT Support Services", "Manpower Outsourcing IT", "Technical Support Services",
+              "Data Entry Operator", "System Administrator Services", "Help Desk Services"]
+    signals: ["it support", "help desk", "helpdesk", "technical support service",
+              "system administrator", "network engineer", "it manpower",
+              "technical manpower", "data entry operator", "computer operator",
+              "deployment of manpower for it"]
+    negative_signals: ["housekeeping", "sanitation", "security guard", "driver",
+                       "gardener", "cook", "nursing"]
+
+  systems_integration:
+    label: "System Integration & Managed IT"
+    queries: ["System Integration", "Managed IT Services", "IT Infrastructure Services",
+              "Supply Installation Commissioning IT"]
+    signals: ["system integration", "systems integrator", "managed it services",
+              "managed services", "it infrastructure service", "turnkey it",
+              "end to end it solution"]
+    negative_signals: []
+
+  software_it_services:
+    label: "Software-related IT Services"
+    queries: ["Software Development Services", "Website Development",
+              "Software AMC", "Antivirus Software", "Software License"]
+    signals: ["software development", "website development", "web portal development",
+              "application development", "software amc", "software licence",
+              "software license", "antivirus", "operating system licence",
+              "erp implementation", "cloud hosting", "data digitization"]
+    negative_signals: []
+
+# Jharkhand geography. Districts are the authoritative list (24 districts);
+# extra city/locality tokens help catch tenders that name a town, not a district.
+geography:
+  state_aliases: ["jharkhand", "jharkhnad", "jharkand", "jh"]
+  districts:
+    - Ranchi
+    - Dhanbad
+    - Bokaro
+    - East Singhbhum
+    - West Singhbhum
+    - Seraikela Kharsawan
+    - Hazaribagh
+    - Deoghar
+    - Giridih
+    - Ramgarh
+    - Koderma
+    - Dumka
+    - Palamu
+    - Garhwa
+    - Latehar
+    - Lohardaga
+    - Gumla
+    - Simdega
+    - Khunti
+    - Chatra
+    - Jamtara
+    - Godda
+    - Sahibganj
+    - Pakur
+  localities:
+    - Jamshedpur
+    - Adityapur
+    - Chaibasa
+    - Chakradharpur
+    - Ghatshila
+    - Jadugora
+    - Bokaro Steel City
+    - Chas
+    - Phusro
+    - Jharia
+    - Sindri
+    - Katras
+    - Chirkunda
+    - Daltonganj
+    - Medininagar
+    - Madhupur
+    - Chirkunda
+    - Barhi
+    - Bermo
+    - Gomia
+    - Mango
+    - Kandra
+    - Saraikela
+    - Rajmahal
+    - Nala
+  # Organisations headquartered in / operating primarily in Jharkhand. Presence
+  # of one of these is corroborating evidence, never proof on its own.
+  local_org_hints:
+    - "Bharat Coking Coal"
+    - "BCCL"
+    - "Central Coalfields"
+    - "CCL"
+    - "Eastern Coalfields"
+    - "Tata Steel"
+    - "Steel Authority of India"
+    - "Bokaro Steel Plant"
+    - "HEC Ltd"
+    - "Heavy Engineering Corporation"
+    - "Indian School of Mines"
+    - "IIT (ISM) Dhanbad"
+    - "Birla Institute of Technology Mesra"
+    - "Ranchi University"
+    - "RIMS Ranchi"
+    - "Jharkhand State"
+    - "Government of Jharkhand"
+    - "Jharkhand Rajya"
+    - "Damodar Valley Corporation"
+    - "DVC"

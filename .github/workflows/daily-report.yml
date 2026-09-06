@@ -1,0 +1,80 @@
+# Runs the GeM IT Tender Intelligence pipeline every morning IST and uploads
+# the report as a build artifact. Google Docs/Drive/Sheets publishing runs
+# too, whenever the GOOGLE_* secrets below are configured — the run degrades
+# gracefully (local Markdown only) when they are not.
+#
+# Cron is UTC. 03:15 UTC = 08:45 IST, inside the brief's 8-9am window.
+name: Daily GeM IT Tender Report
+
+on:
+  schedule:
+    - cron: "15 3 * * *"
+  workflow_dispatch:          # allow a manual run from the Actions tab
+    inputs:
+      report_date:
+        description: "Report date (YYYY-MM-DD). Leave blank for today."
+        required: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gem-daily-report
+  cancel-in-progress: false   # never abandon a run partway through a scrape
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore tender database
+        uses: actions/cache@v4
+        with:
+          path: data/tenders.db
+          # A cache key that always changes means we always get *a* cache to
+          # restore-keys into, while a fresh save happens every run — the
+          # database is the run's memory and must never be lost.
+          key: tender-db-${{ github.run_id }}
+          restore-keys: |
+            tender-db-
+
+      - name: Run the daily pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GOOGLE_DRIVE_FOLDER_ID: ${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}
+          GOOGLE_SHEET_ID: ${{ secrets.GOOGLE_SHEET_ID }}
+          GOOGLE_SHARED_DRIVE_ID: ${{ secrets.GOOGLE_SHARED_DRIVE_ID }}
+          GEM_CONTACT_EMAIL: ${{ vars.GEM_CONTACT_EMAIL }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.report_date }}" ]; then
+            ARGS="--date ${{ github.event.inputs.report_date }}"
+          fi
+          python -m gem_intel.cli run --json-logs $ARGS
+
+      - name: Upload report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gem-tender-report-${{ github.run_id }}
+          path: data/reports/
+          retention-days: 90
+
+      - name: Upload run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gem-run-database-${{ github.run_id }}
+          path: data/tenders.db
+          retention-days: 14

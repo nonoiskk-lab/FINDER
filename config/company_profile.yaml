@@ -1,0 +1,71 @@
+# Your business profile. Everything the eligibility and capability analysis
+# claims about "us" comes from here — nothing is assumed.
+#
+# Leave a field as `null` or an empty list if you are not sure. The system
+# treats unknown capability as "Requires Verification", never as a match.
+# It will never tell you that you are eligible for something; the strongest
+# statement it can make is "Likely Suitable".
+
+company:
+  legal_name: null                 # e.g. "QBE India"
+  base_city: "Dhanbad"
+  base_state: "Jharkhand"
+  gem_seller_registered: null      # true / false / null (unknown)
+  years_in_business: null
+  msme_registered: null            # true if you hold a valid Udyam registration
+  udyam_number: null
+  startup_dpiit_recognised: null
+  iso_certified: null
+  gst_registered: null
+
+financials:
+  # Used only to judge whether a stated turnover requirement is likely met.
+  # If null, any turnover requirement is reported as "requires verification".
+  annual_turnover_inr: null
+  can_arrange_emd_upto_inr: null
+  can_arrange_epbg_upto_inr: null
+
+capability:
+  # Categories you can actually supply or service. These must match the
+  # `label` values in config/taxonomy.yaml.
+  strong:
+    - "Computer Hardware"
+    - "Printing & Scanning"
+    - "Peripherals & Accessories"
+    - "Power & Storage"
+  moderate:
+    - "Networking"
+    - "CCTV & Surveillance"
+    - "AMC & Maintenance Services"
+    - "Networking Services"
+    - "CCTV Installation & Maintenance"
+  weak:
+    - "Data Centre & IT Infrastructure"
+    - "System Integration & Managed IT"
+    - "IT Support & Technical Manpower"
+    - "Software-related IT Services"
+
+oem_authorizations:
+  # Brands you can produce an OEM Authorization Letter / MAF for.
+  # An empty list means every MAF requirement is flagged as a gap to verify.
+  held: []                         # e.g. ["HP", "Lenovo", "Epson"]
+  obtainable: []                   # brands you can realistically get a MAF for
+
+experience:
+  government_supply_experience: null   # true / false / null
+  largest_single_order_inr: null
+  service_districts:
+    - "Dhanbad"
+    - "Bokaro"
+    - "Ranchi"
+    - "Giridih"
+    - "Ramgarh"
+
+preferences:
+  # Bids below this value are usually not worth the paperwork for you.
+  min_attractive_value_inr: 100000
+  # Above this, the commercial and delivery risk needs a deliberate decision.
+  max_comfortable_value_inr: 20000000
+  avoid_keywords:
+    - "turnkey civil"
+    - "software development from scratch"

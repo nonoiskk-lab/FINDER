@@ -1,0 +1,91 @@
+# HTML selectors for the public GeM bid listing.
+#
+# The portal's markup changes from time to time. Keeping selectors here means
+# a portal change is a one-line config edit, not a code change — and the
+# parser raises PARSER_DRIFT (recorded as a GeM access issue) rather than
+# silently returning zero tenders, so a layout change can never be mistaken
+# for "no tenders today".
+#
+# Each entry is a list; the parser tries them in order and uses the first
+# that yields anything. Add the new selector to the FRONT when the portal
+# changes, and keep the old one for a release or two.
+
+listing:
+  # Container for one bid on the search-results page.
+  card:
+    - "div.card"
+    - "div.bid-card"
+    - "div.block.pkglist"
+  # Anchor whose text is the bid number and whose href is the bid document.
+  bid_link:
+    - "a.bid_no_hover"
+    - "a[href*='showbidDocument']"
+    - "a[href*='bidlists']"
+  items:
+    - "div.col-block:-soup-contains('Items') a"
+    - "div.col-block:-soup-contains('Items')"
+    - "a.bid_no_hover ~ div"
+  quantity:
+    - "div.col-block:-soup-contains('Quantity')"
+  department:
+    - "div.col-block:-soup-contains('Department Name And Address')"
+    - "div.col-block:-soup-contains('Department')"
+  category:
+    - "div.col-block:-soup-contains('Category')"
+  start_date:
+    - "span.start_date"
+    - "div.col-block:-soup-contains('Start Date') span"
+  end_date:
+    - "span.end_date"
+    - "div.col-block:-soup-contains('End Date') span"
+  pagination_last:
+    - "ul.pagination li:last-child a"
+    - "div.pagination a.last"
+
+detail:
+  # Key/value rows on a bid detail page.
+  field_row:
+    - "table.table tr"
+    - "div.row.bid-detail"
+  key_cell:
+    - "td:first-child"
+    - "div.key"
+  value_cell:
+    - "td:nth-child(2)"
+    - "div.value"
+  document_link:
+    - "a[href$='.pdf']"
+    - "a[href*='showbidDocument']"
+    - "a[href*='downloadDocument']"
+    - "a[href*='showradocumentPdf']"
+
+# Labels seen on GeM bid pages, mapped to our canonical field names.
+# Matching is case-insensitive and punctuation-insensitive.
+field_labels:
+  bid_number: ["bid number", "bid no", "bid no.", "bid number/ra no"]
+  gem_tender_id: ["tender id", "gem tender id", "bid id"]
+  published_at: ["dated", "bid published date", "published date", "date of publication"]
+  bid_start_at: ["bid start date", "bid opening date/time", "start date"]
+  bid_end_at: ["bid end date", "bid end date/time", "bid closing date", "end date",
+               "bid submission closing date"]
+  bid_open_at: ["bid opening date", "bid opening date/time", "opening date"]
+  ministry: ["ministry", "ministry/state name", "ministry name"]
+  department: ["department name", "department", "department name and address"]
+  buyer_organization: ["organisation name", "organization name", "organisation"]
+  office: ["office name", "office zone", "buyer office"]
+  buyer_address: ["buyer address", "address", "department name and address"]
+  category: ["item category", "category", "bid category"]
+  quantity: ["total quantity", "quantity"]
+  estimated_value: ["estimated bid value", "bid value", "estimated value"]
+  emd_amount: ["emd amount", "emd"]
+  epbg_percentage: ["epbg percentage", "epbg percentage(%)", "epbg"]
+  msme_exemption: ["mse exemption for years of experience and turnover",
+                   "mse exemption", "msme exemption"]
+  startup_exemption: ["startup exemption for years of experience and turnover",
+                      "startup exemption"]
+  delivery_location: ["consignee/reporting officer and quantity", "delivery location",
+                      "consignee location", "delivery days"]
+  ra_enabled: ["ra enabled", "reverse auction"]
+  bid_type: ["bid type", "type of bid"]
+  splitting: ["bid to ra enabled", "splitting"]
+  evaluation_method: ["evaluation method", "bid evaluation"]

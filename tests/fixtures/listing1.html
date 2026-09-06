@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html><head><title>All Bids</title></head>
+<body>
+<div id="bidCard">
+
+  <!-- 1. Laptops, Ranchi, closes in 4 days — should be ACTION REQUIRED -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100011">GEM/2026/B/7100011</a>
+    </div>
+    <div class="col-block">Items: Supply of Laptop (Notebook Computer) for office use</div>
+    <div class="col-block">Quantity: 45 Nos</div>
+    <div class="col-block">Category: Laptop - Business</div>
+    <div class="col-block">Department Name And Address: Department of Higher Education,
+      Government of Jharkhand, Nepal House, Doranda, Ranchi, Jharkhand 834002</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-2d 09:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+4d 15:00}}</span></div>
+  </div>
+
+  <!-- 2. Printer AMC, Dhanbad, closes tomorrow — should be URGENT -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100012">GEM/2026/B/7100012</a>
+    </div>
+    <div class="col-block">Items: Annual Maintenance Contract (AMC) of Computers and
+      Printers at various offices</div>
+    <div class="col-block">Quantity: 1 Contract</div>
+    <div class="col-block">Category: Comprehensive AMC Services</div>
+    <div class="col-block">Department Name And Address: Bharat Coking Coal Limited,
+      Koyla Bhawan, Koyla Nagar, Dhanbad, Jharkhand 826005</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-6d 10:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+1d 14:00}}</span></div>
+  </div>
+
+  <!-- 3. Office furniture, Ranchi — IT filter must reject this -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100013">GEM/2026/B/7100013</a>
+    </div>
+    <div class="col-block">Items: Supply of Office Furniture including Computer Table
+      and Executive Chair</div>
+    <div class="col-block">Quantity: 120 Nos</div>
+    <div class="col-block">Category: Office Furniture</div>
+    <div class="col-block">Department Name And Address: District Collectorate,
+      Ranchi, Jharkhand 834001</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-1d 11:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+7d 15:00}}</span></div>
+  </div>
+
+  <!-- 4. Desktops, Kerala — geography filter must reject this -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100014">GEM/2026/B/7100014</a>
+    </div>
+    <div class="col-block">Items: Supply of Desktop Computer with Monitor</div>
+    <div class="col-block">Quantity: 60 Nos</div>
+    <div class="col-block">Category: Desktop Computer</div>
+    <div class="col-block">Department Name And Address: Directorate of Technical
+      Education, Thiruvananthapuram, Kerala 695001</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-3d 09:30}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+5d 15:00}}</span></div>
+  </div>
+
+  <!-- 5. CCTV, Bokaro, closes in 25 days — outside window, watchlist candidate -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100015">GEM/2026/B/7100015</a>
+    </div>
+    <div class="col-block">Items: Supply, Installation and Commissioning of CCTV
+      Surveillance System with NVR and IP Camera</div>
+    <div class="col-block">Quantity: 220 Nos</div>
+    <div class="col-block">Category: CCTV Surveillance System</div>
+    <div class="col-block">Department Name And Address: Bokaro Steel Plant, SAIL,
+      Bokaro Steel City, Bokaro, Jharkhand 827001</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-1d 12:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+25d 15:00}}</span></div>
+  </div>
+
+  <!-- 6. AMC of lift, Ranchi — negative signal must veto this -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100016">GEM/2026/B/7100016</a>
+    </div>
+    <div class="col-block">Items: AMC of Lift and Elevator at office building</div>
+    <div class="col-block">Quantity: 4 Nos</div>
+    <div class="col-block">Category: Lift Maintenance</div>
+    <div class="col-block">Department Name And Address: RIMS Ranchi, Bariatu,
+      Ranchi, Jharkhand 834009</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-4d 09:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{+6d 15:00}}</span></div>
+  </div>
+
+  <!-- 7. Already closed — expiry filter must reject this -->
+  <div class="card">
+    <div class="col-block">
+      <a class="bid_no_hover" href="/showbidDocument/7100017">GEM/2026/B/7100017</a>
+    </div>
+    <div class="col-block">Items: Supply of UPS 5 KVA with battery</div>
+    <div class="col-block">Quantity: 12 Nos</div>
+    <div class="col-block">Category: Online UPS</div>
+    <div class="col-block">Department Name And Address: Jharkhand State Electricity
+      Board, Ranchi, Jharkhand 834002</div>
+    <div class="col-block">Start Date: <span class="start_date">{{-20d 09:00}}</span></div>
+    <div class="col-block">End Date: <span class="end_date">{{-3d 15:00}}</span></div>
+  </div>
+
+</div>
+</body></html>

@@ -1,0 +1,135 @@
+# GeM IT Tender Intelligence Automation — runtime settings
+# Every value here is overridable via environment variables (see .env.example)
+# using the GEMINTEL_ prefix and __ as the nesting separator,
+# e.g. GEMINTEL_DEADLINE__MAX_DAYS_REMAINING=14
+
+run:
+  timezone: "Asia/Kolkata"
+  # Schedule is enforced by the orchestrator (GitHub Actions / cron / n8n),
+  # not by the application itself. Documented here for reference.
+  scheduled_local_time: "08:30"
+  # Hard ceiling so a runaway crawl can never hammer the portal.
+  max_listing_pages: 40
+  max_detail_fetches: 250
+  max_document_downloads: 400
+
+source:
+  # The ONLY accepted origin for tender facts. Anything whose canonical URL
+  # does not fall under one of these hosts is dropped before analysis.
+  # See docs/COMPLIANCE.md before adding a host here.
+  allowed_hosts:
+    - "bidplus.gem.gov.in"
+    - "gem.gov.in"
+    - "mkp.gem.gov.in"
+  base_url: "https://bidplus.gem.gov.in"
+  all_bids_path: "/all-bids"
+  bid_detail_path_template: "/showbidDocument/{bid_id}"
+  respect_robots_txt: true
+  user_agent: "GeM-IT-Tender-Intelligence/1.0 (+contact: {contact_email}; internal procurement research)"
+  # Politeness. These are floors, not targets.
+  requests_per_minute: 20
+  min_delay_seconds: 2.0
+  max_delay_seconds: 5.0
+  request_timeout_seconds: 45
+  max_retries: 4
+  backoff_base_seconds: 2.0
+  # If the portal presents a CAPTCHA / interstitial, the run ABORTS that source
+  # and records a GEM_ACCESS_ISSUE. It never attempts to solve or bypass it.
+  abort_on_captcha: true
+
+deadline:
+  # Core business rule: only tenders closing within this many days enter the
+  # main daily report.
+  max_days_remaining: 10
+  # Tenders beyond the window are kept, but only in the watchlist, and only if
+  # they clear the watchlist score floor.
+  watchlist_max_days_remaining: 60
+  watchlist_min_score: 70
+  urgency_bands:
+    - {label: "URGENT",          emoji: "🔴", min_days: 0, max_days: 2}
+    - {label: "HIGH PRIORITY",   emoji: "🟠", min_days: 3, max_days: 5}
+    - {label: "ACTION REQUIRED", emoji: "🟡", min_days: 6, max_days: 10}
+
+geography:
+  target_state: "Jharkhand"
+  # A tender qualifies on ANY of: delivery location, service location,
+  # installation location, buyer address. Buyer HQ elsewhere does NOT
+  # disqualify when the delivery/service location is in Jharkhand.
+  accept_fields:
+    - delivery_location
+    - service_location
+    - installation_location
+    - buyer_address
+    - consignee_locations
+  # Pan-India / multi-state tenders that merely *include* Jharkhand are kept
+  # but scored lower (see scoring.location).
+  keep_pan_india: true
+
+scoring:
+  weights:
+    product_match: 20
+    location_match: 15
+    business_capability: 20
+    document_complexity: 10
+    deadline_urgency: 10
+    commercial_potential: 15
+    procurement_complexity: 10
+  bands:
+    - {label: "STRONG OPPORTUNITY", emoji: "🟢", min: 80, max: 100, rank: "TOP PRIORITY",     rank_emoji: "🥇"}
+    - {label: "GOOD OPPORTUNITY",   emoji: "🟡", min: 60, max: 79,  rank: "GOOD OPPORTUNITY", rank_emoji: "🥈"}
+    - {label: "REVIEW REQUIRED",    emoji: "🟠", min: 40, max: 59,  rank: "REVIEW REQUIRED",  rank_emoji: "🥉"}
+    - {label: "LOW PRIORITY",       emoji: "🔴", min: 0,  max: 39,  rank: "LOW PRIORITY",     rank_emoji: "❌"}
+
+llm:
+  enabled: true
+  model: "claude-opus-5"
+  # Reasoning depth. "high" is the API default; "medium" is a sensible
+  # cost/quality trade for routine extraction over many tenders.
+  effort: "high"
+  max_tokens: 8000
+  # Server-side refusal fallback: if a safety classifier declines a request,
+  # the API routes it to a suitable fallback model instead of returning
+  # nothing. Set to false to see raw refusals instead.
+  refusal_fallback: true
+  # Hard cap on spend per run; the pipeline degrades to rule-only analysis
+  # (clearly flagged in the report) rather than silently truncating.
+  max_calls_per_run: 300
+  # Text handed to the model per tender, in characters.
+  max_context_chars: 180000
+  # Per-call retry budget on top of the SDK's own retries.
+  max_attempts: 3
+
+documents:
+  download: true
+  max_bytes_per_document: 26214400   # 25 MiB
+  allowed_content_types:
+    - "application/pdf"
+    - "application/msword"
+    - "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    - "application/vnd.ms-excel"
+    - "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    - "text/plain"
+  ocr_fallback: true          # only used when a PDF yields no extractable text
+  ocr_max_pages: 30
+
+storage:
+  database_url: "sqlite:///data/tenders.db"
+  artifacts_dir: "data/artifacts"
+  reports_dir: "data/reports"
+  retain_documents_days: 120
+
+google:
+  enabled: true
+  drive_root_folder_name: "GeM Tender Intelligence"
+  doc_title_template: "GeM IT Tender Intelligence Report – {date:%d %B %Y}"
+  # Sheets is the operational database mirror; Docs is the human report.
+  sheets_enabled: true
+  sheet_tab_tenders: "Tenders"
+  sheet_tab_changelog: "Change Log"
+  sheet_tab_runs: "Run Log"
+  never_overwrite_reports: true
+
+notifications:
+  # Optional. Left off by default.
+  email_enabled: false
+  slack_enabled: false
