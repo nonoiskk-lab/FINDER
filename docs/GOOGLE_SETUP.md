@@ -82,3 +82,65 @@ credential/API error, logs it, and the pipeline records
 `"Google Workspace unavailable"` as a degraded mode in the report rather than
 failing the run. You still get `data/reports/<date>-gem-it-tender-report.md`
 every day.
+
+## Google Search discovery (a *different* Google credential)
+
+Everything above is about **where the report gets published**. This section
+is about a completely separate, optional feature: **how tenders get found**.
+
+By default, `gem-intel run` finds candidate tenders by using GeM's own search
+box directly (`--discovery portal`, the default). You can additionally (or
+instead) have it ask **Google's Custom Search API** for pages already indexed
+under `site:bidplus.gem.gov.in` — a second, independent way to discover the
+same official pages, useful if GeM's own search form ever changes shape
+before `config/selectors.yaml` is updated for it.
+
+**This does not use the Drive/Docs account above at all**, and does not
+require you to have set that up. It needs its own credential pair:
+
+1. In [Google Cloud Console](https://console.cloud.google.com/), enable the
+   **Custom Search API**, then create an **API key** (APIs & Services →
+   Credentials → Create Credentials → API key). This is `GOOGLE_SEARCH_API_KEY`.
+2. Go to the [Programmable Search Engine control panel](https://programmablesearchengine.google.com/),
+   create a new search engine, and set it to search the entire web (or
+   restrict it to `gem.gov.in` and `bidplus.gem.gov.in` for tighter scope —
+   either works, since the adapter filters results to the official hosts
+   regardless). Copy its **Search engine ID** — this is `GOOGLE_SEARCH_CSE_ID`.
+3. Set both as environment variables and turn the feature on:
+
+   ```bash
+   export GOOGLE_SEARCH_API_KEY=...
+   export GOOGLE_SEARCH_CSE_ID=...
+   ```
+
+   ```yaml
+   # config/settings.yaml
+   source:
+     google_search:
+       enabled: true
+   ```
+
+4. Run with `--discovery both` to use GeM's own search *and* Google Search
+   together (recommended), or `--discovery google_search` to use Google
+   Search alone:
+
+   ```bash
+   gem-intel run --discovery both
+   ```
+
+5. `gem-intel doctor` reports whether this is configured, separately from the
+   Drive/Docs check above.
+
+**Compliance note:** Google Search is a *discovery* mechanism only — it never
+becomes the source of a tender fact. Every URL Google returns is checked
+against `source.allowed_hosts` before it is used at all (a well-ranked result
+on a tender-aggregator site is silently dropped, not included with a
+caveat), and every fact in the report still comes from fetching and parsing
+the official GeM page itself, exactly as with the direct-search adapter. See
+`docs/COMPLIANCE.md`.
+
+**Cost and quota:** the Custom Search API's free tier is 100 queries/day;
+`source.google_search.daily_query_budget` (default 90) keeps the run under
+that automatically, at the cost of not covering every taxonomy keyword on a
+day when the budget runs out — this is recorded as a
+`GOOGLE_SEARCH_BUDGET_EXHAUSTED` access issue, not hidden.

@@ -28,8 +28,8 @@ from gem_intel.models import DailyReport, RunManifest, Tender
 from gem_intel.observability import get_logger, new_run_id, now_ist
 from gem_intel.report.builder import build_report_document, report_title
 from gem_intel.report.markdown import write_markdown
+from gem_intel.sources import build_source
 from gem_intel.sources.base import SourceAdapter
-from gem_intel.sources.gem_bidplus import GemBidPlusSource
 from gem_intel.store.database import TenderDatabase
 from gem_intel.validate.rules import Rejection, VerificationGate
 
@@ -57,10 +57,13 @@ class TenderPipeline:
         database: TenderDatabase | None = None,
         profile: CompanyProfile | None = None,
         llm: LlmAnalyzer | None = None,
+        discovery_mode: str = "portal",
     ) -> None:
         self.settings = settings
         self.client = client or GemHttpClient(settings)
-        self.source = source or GemBidPlusSource(settings, self.client)
+        # discovery_mode is ignored when an explicit `source` is passed in
+        # (tests and --dry-run supply their own FixtureSource this way).
+        self.source = source or build_source(settings, self.client, discovery_mode)
         self.database = database or TenderDatabase(
             settings.get("storage.database_url", "sqlite:///data/tenders.db")
         )
@@ -168,9 +171,36 @@ class TenderPipeline:
                  candidates=len(candidates), shortlisted=len(shortlist))
 
         analysed: list[Tender] = []
+        captcha_hit = False
         for tender in shortlist:
-            self.source.fetch_detail(tender)
-            manifest.details_fetched += 1
+            if captcha_hit:
+                # Already saw a challenge this run; further attempts would
+                # just hit the same wall. Every remaining tender still gets
+                # analysed and reported on whatever listing data it has —
+                # it does not silently vanish, it is flagged instead.
+                tender.flag(
+                    "Detail page not fetched — the GeM portal presented a "
+                    "human-verification challenge earlier in this run, so no "
+                    "further detail pages were requested."
+                )
+            else:
+                try:
+                    self.source.fetch_detail(tender)
+                    manifest.details_fetched += 1
+                except AccessBlocked as exc:
+                    captcha_hit = True
+                    manifest.access_issues.extend(self.client.access_issues)
+                    manifest.degrade(
+                        "GeM presented a human-verification challenge while "
+                        "fetching a bid's detail page; remaining tenders in "
+                        "this run show listing-only data"
+                    )
+                    tender.flag(
+                        "Detail page not fetched — the GeM portal presented a "
+                        "human-verification challenge while loading this bid."
+                    )
+                    log.error("detail fetch aborted at an access challenge",
+                             url=exc.url)
 
             used = self.documents.process_tender(tender, document_budget)
             document_budget -= used

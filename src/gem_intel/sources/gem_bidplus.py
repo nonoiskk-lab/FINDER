@@ -44,6 +44,7 @@ from gem_intel.http_client import AccessBlocked, GemHttpClient
 from gem_intel.models import Tender
 from gem_intel.observability import get_logger
 from gem_intel.sources.base import SourceAdapter, SourceResult
+from gem_intel.sources.detail_fetch import BudgetedDetailFetcher
 
 log = get_logger(__name__)
 
@@ -71,7 +72,9 @@ class GemBidPlusSource(SourceAdapter):
 
         self.hosts = tuple(settings.allowed_hosts)
         self._csrf: tuple[str, str] | None = None   # (field name, token)
-        self._details_fetched = 0
+        self._detail_fetcher = BudgetedDetailFetcher(
+            self.client, self.detail_parser, self.max_details
+        )
 
     # ------------------------------------------------------------------
     def search(self, queries: Iterable[str]) -> SourceResult:
@@ -215,45 +218,11 @@ class GemBidPlusSource(SourceAdapter):
 
     # ------------------------------------------------------------------
     def fetch_detail(self, tender: Tender) -> Tender:
-        if self._details_fetched >= self.max_details:
-            tender.flag("Detail page not fetched (per-run budget reached) — "
-                        "figures below come from the search listing only.")
-            return tender
-        if not tender.source_url:
-            tender.flag("No official GeM detail URL was available for this bid.")
-            return tender
-
-        response = self.client.fetch(tender.source_url, stage="detail")
-        self._details_fetched += 1
-        if response is None:
-            tender.flag("The official GeM detail page could not be loaded — "
-                        "figures below come from the search listing only.")
-            return tender
-
-        content_type = (response.content_type or "").lower()
-        if "pdf" in content_type:
-            # Some bids expose only a PDF at the detail URL. Record it as the
-            # tender's primary document; the document processor reads it next.
-            from gem_intel.models import TenderDocument
-
-            if not any(d.url == response.url for d in tender.documents):
-                tender.documents.insert(0, TenderDocument(
-                    name=f"{tender.bid_number or 'bid'}.pdf",
-                    url=response.url, kind="bid_document",
-                ))
-            return tender
-
-        try:
-            self.detail_parser.parse(tender, response.text, response.url)
-        except Exception as exc:                    # noqa: BLE001
-            self.client.record_issue("detail", tender.source_url,
-                                     "DETAIL_PARSE_FAILED", str(exc))
-            tender.flag("The GeM detail page could not be parsed — verify this bid manually.")
-        return tender
+        return self._detail_fetcher.fetch(tender)
 
     @property
     def details_fetched(self) -> int:
-        return self._details_fetched
+        return self._detail_fetcher.details_fetched
 
 
 def load_fixture_source(settings: Settings, fixture_dir: Path) -> FixtureSource:

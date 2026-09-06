@@ -52,3 +52,70 @@ class SourceAdapter(ABC):
     @abstractmethod
     def fetch_detail(self, tender: Tender) -> Tender:
         """Enrich a tender with its full detail page and document list."""
+
+
+class CompositeSource(SourceAdapter):
+    """Fans a search out across several discovery adapters and merges them.
+
+    Each adapter only needs to discover candidate tenders in its own way
+    (the portal's own search form, a Google Search query, ...); the same
+    underlying GeM detail page still gets fetched and parsed identically
+    afterwards. Merging happens here, deduplicated by
+    :attr:`Tender.identity_key`, so the same bid found by two adapters is
+    reported once — with both adapters' search terms recorded against it.
+
+    ``fetch_detail`` is routed back to whichever adapter actually discovered
+    the tender, remembered internally by identity key (never on the tender
+    itself — a live adapter object is not JSON-serialisable and must never
+    end up in ``Tender.raw_fields``, which gets persisted to the database).
+    """
+
+    name = "Composite (multiple discovery adapters)"
+
+    def __init__(self, adapters: list[SourceAdapter]) -> None:
+        if not adapters:
+            raise ValueError("CompositeSource needs at least one adapter")
+        self.adapters = adapters
+        self._owner: dict[str, SourceAdapter] = {}
+
+    def search(self, queries: Iterable[str]) -> SourceResult:
+        query_list = list(queries)
+        combined = SourceResult()
+        seen: dict[str, Tender] = {}
+
+        for adapter in self.adapters:
+            result = adapter.search(query_list)
+            combined.queries_executed.extend(result.queries_executed)
+            combined.listings_seen += result.listings_seen
+            combined.access_issues.extend(result.access_issues)
+            if result.aborted:
+                combined.aborted = True
+                combined.abort_reason = combined.abort_reason or (
+                    f"{adapter.name}: {result.abort_reason}"
+                )
+            for tender in result.tenders:
+                key = tender.identity_key
+                self._owner.setdefault(key, adapter)
+                existing = seen.get(key)
+                if existing is None:
+                    seen[key] = tender
+                    continue
+                # Same bid found twice: keep the first copy, but remember
+                # every query/adapter that surfaced it.
+                existing.raw_fields.setdefault("matched_queries", []).extend(
+                    tender.raw_fields.get("matched_queries", [])
+                )
+                sources = existing.raw_fields.setdefault("discovered_via", [])
+                new_source = tender.raw_fields.get("discovered_via", adapter.name)
+                if isinstance(sources, str):
+                    sources = [sources]
+                    existing.raw_fields["discovered_via"] = sources
+                if new_source not in sources:
+                    sources.append(new_source)
+
+        combined.tenders = list(seen.values())
+        return combined
+
+    def fetch_detail(self, tender: Tender) -> Tender:
+        adapter = self._owner.get(tender.identity_key, self.adapters[0])
+        return adapter.fetch_detail(tender)

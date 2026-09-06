@@ -57,10 +57,24 @@ morning at 08:45 IST via GitHub Actions; any cron works just as well.
 
 | Command | Purpose |
 |---|---|
-| `gem-intel run` | The daily pipeline. `--dry-run` replays `tests/fixtures/` with no network. `--no-google`, `--no-llm`, `--query` for overrides. |
+| `gem-intel run` | The daily pipeline. `--dry-run` replays `tests/fixtures/` with no network. `--no-google`, `--no-llm`, `--query` for overrides. `--discovery portal\|google_search\|both` picks how tenders are found (see below). |
 | `gem-intel doctor` | Checks config, company profile, AI credentials, Google Workspace access, and (with `--check-portal`) live connectivity to GeM. |
 | `gem-intel keywords` | Prints every search term the run will use, grouped by category. |
 | `gem-intel db --open` | Lists tenders currently marked open in the local database. |
+
+### How tenders are discovered
+
+By default the pipeline searches GeM's own search box directly
+(`--discovery portal`). It can optionally also (or instead) discover
+candidate tenders via **Google's Custom Search API**
+(`--discovery google_search` or `--discovery both`) as a second, independent
+way to find the same official pages — useful if GeM's own search form ever
+changes shape. This needs its own credentials (separate from the Drive/Docs
+account used for publishing) — see `docs/GOOGLE_SETUP.md` → *Google Search
+discovery*. Either way, every candidate URL is still checked against the
+official-host allow-list before it is used, and every fact in the report
+still comes from the official GeM page itself — Google Search only ever
+proposes URLs, never tender facts.
 
 ## Project layout
 

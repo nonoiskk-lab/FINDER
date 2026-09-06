@@ -5,10 +5,16 @@
    TRIGGER       │  cron (GitHub Actions) · Asia/Kolkata 08:45  │
                  └───────────────────────┬─────────────────────┘
                                           ▼
-   FIND          gem_intel.sources.gem_bidplus.GemBidPlusSource
-                 · searches bidplus.gem.gov.in with every taxonomy keyword
+   FIND          gem_intel.sources.build_source(mode) selects one of:
+                 · GemBidPlusSource     — GeM's own search box (default)
+                 · GoogleSearchGemSource — Google Custom Search, site:gem.gov.in
+                 · CompositeSource       — both, merged + deduplicated
                  · GemHttpClient enforces host allow-list, robots.txt,
                    rate limiting, and aborts (never bypasses) a CAPTCHA
+                 · Google Search only ever proposes candidate URLs — every
+                   one is still checked against the allow-list, and every
+                   fact still comes from fetching the official GeM page
+                   itself via the shared sources/detail_fetch.py helper
                                           ▼
    EXTRACT       gem_intel.extract.gem_html  (listing + detail HTML)
                  gem_intel.extract.documents (PDF/DOCX/XLSX -> text)

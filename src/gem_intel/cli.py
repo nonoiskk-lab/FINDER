@@ -52,6 +52,12 @@ def build_parser() -> argparse.ArgumentParser:
                      help="skip Google Docs/Drive/Sheets even if credentials exist")
     run.add_argument("--no-llm", action="store_true",
                      help="skip AI analysis; rule-based extraction only")
+    run.add_argument("--discovery", choices=["portal", "google_search", "both"],
+                     default="portal",
+                     help="how to find candidate tenders: GeM's own search box "
+                          "(default), Google Custom Search only, or both merged. "
+                          "google_search/both need GOOGLE_SEARCH_API_KEY and "
+                          "GOOGLE_SEARCH_CSE_ID — see docs/GOOGLE_SETUP.md")
     run.add_argument("--print", dest="print_report", action="store_true",
                      help="print the report to stdout when finished")
 
@@ -108,7 +114,8 @@ def command_run(args: argparse.Namespace) -> int:
         source = FixtureSource(settings, args.fixtures)
         log.info("dry run: replaying fixtures", directory=str(args.fixtures))
 
-    pipeline = TenderPipeline(settings, source=source, client=client)
+    pipeline = TenderPipeline(settings, source=source, client=client,
+                              discovery_mode=args.discovery)
     try:
         result = pipeline.run(report_date=args.date, queries=args.query)
     finally:
@@ -157,6 +164,8 @@ def _print_outcome(result) -> None:
 
 
 def command_doctor(args: argparse.Namespace) -> int:
+    import os
+
     settings = load_settings(args.config_dir)
     ok = True
 
@@ -203,6 +212,27 @@ def command_doctor(args: argparse.Namespace) -> int:
             ok = False
             print("  ✗ unavailable     : see docs/GOOGLE_SETUP.md "
                   "(the run will still write a local Markdown report)")
+
+    print("\nGoogle Search discovery (optional, separate from the account above)")
+    gs_cfg = settings.get("source.google_search", {}) or {}
+    if not gs_cfg.get("enabled", False):
+        print("  – disabled in settings (source.google_search.enabled: false)")
+        print("    this is normal; the direct portal search is the primary path")
+    else:
+        api_key = os.environ.get(gs_cfg.get("api_key_env", "GOOGLE_SEARCH_API_KEY"), "")
+        cse_id = os.environ.get(gs_cfg.get("cse_id_env", "GOOGLE_SEARCH_CSE_ID"), "")
+        if api_key and cse_id:
+            print(f"  ✓ configured      : {len(gs_cfg.get('site_filters', []))} site "
+                  f"filter(s), budget {gs_cfg.get('daily_query_budget', 90)} "
+                  "queries/day")
+        else:
+            missing = [name for name, value in (
+                (gs_cfg.get("api_key_env", "GOOGLE_SEARCH_API_KEY"), api_key),
+                (gs_cfg.get("cse_id_env", "GOOGLE_SEARCH_CSE_ID"), cse_id),
+            ) if not value]
+            ok = False
+            print(f"  ✗ enabled but missing: {', '.join(missing)} "
+                  "(see docs/GOOGLE_SETUP.md → Google Search discovery)")
 
     print("\nStorage")
     db_path = Path(str(settings.get("storage.database_url", "sqlite:///data/tenders.db"))

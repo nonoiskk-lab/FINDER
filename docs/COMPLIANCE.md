@@ -27,6 +27,21 @@ means adding its host to `source.allowed_hosts` *and* explaining in a PR
 description why it is an official GeM endpoint. Never add a tender
 aggregator, however reputable, to that list.
 
+**Google Search discovery is discovery, not a source.**
+`GoogleSearchGemSource` (`sources/google_search.py`) uses Google's Custom
+Search API to find pages already indexed under `site:bidplus.gem.gov.in`. It
+does not weaken the single-source rule: `GoogleSearchGemSource._tender_from_result`
+calls `GemHttpClient.assert_allowed_host` on every result *before* it becomes
+a candidate, so a well-ranked result on a non-official host is dropped
+outright — not included with a caveat. And no fact ever comes from the
+search result's title or snippet: those only seed a placeholder used by the
+first-pass screen, and every fact that reaches the report still comes from
+fetching and parsing the official GeM page itself, via the same
+`sources/detail_fetch.py` helper the direct-search adapter uses. If you add
+another discovery mechanism in the future (a different search engine, an RSS
+feed, whatever), hold it to this same standard: discover URLs, never facts,
+and verify every URL against the allow-list before it is used for anything.
+
 ## No circumvention of access controls
 
 `GemHttpClient` treats a CAPTCHA or bot-interstitial as a hard stop:

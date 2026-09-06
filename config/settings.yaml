@@ -37,6 +37,34 @@ source:
   # and records a GEM_ACCESS_ISSUE. It never attempts to solve or bypass it.
   abort_on_captcha: true
 
+  # Optional supplementary discovery: instead of (or alongside) GeM's own
+  # search box, ask Google's Custom Search API for pages under the same
+  # allowed_hosts. This is discovery only — every result is still verified
+  # against allowed_hosts and its facts still come from fetching and parsing
+  # the official GeM page itself, exactly like the direct-search adapter.
+  # Off by default: it needs its own Google Cloud credentials (a Custom
+  # Search API key + Search Engine ID), separate from any personal Google
+  # Drive/Docs login — see docs/GOOGLE_SETUP.md.
+  google_search:
+    enabled: false
+    api_key_env: "GOOGLE_SEARCH_API_KEY"
+    cse_id_env: "GOOGLE_SEARCH_CSE_ID"
+    endpoint: "https://www.googleapis.com/customsearch/v1"
+    # Results requested per query (Google caps a single call at 10).
+    results_per_query: 10
+    # Every query costs one unit of Google's Custom Search quota (free tier:
+    # 100/day). This is a hard ceiling so the run can never overspend it,
+    # independent of how many taxonomy keywords exist.
+    daily_query_budget: 90
+    # Each keyword is combined with each of these site filters...
+    site_filters:
+      - "site:bidplus.gem.gov.in"
+      - "site:gem.gov.in"
+    # ...and each of these location hints, to bias results toward Jharkhand
+    # instead of spending quota on obviously-irrelevant states.
+    location_hints:
+      - "Jharkhand"
+
 deadline:
   # Core business rule: only tenders closing within this many days enter the
   # main daily report.
